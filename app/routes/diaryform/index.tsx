@@ -28,9 +28,9 @@ const DiaryForm = () => {
         const diaryParsed: string[] | string = diarySaved ? diarySaved : [];
         const diaryArr: string[] = Array.isArray(diaryParsed) ? diaryParsed : [diaryParsed]
         diaryArr.push(text);
-        localStorage.setItem("diary", JSON.stringify(diaryArr));
+        //localStorage.setItem("diary", JSON.stringify(diaryArr));
 
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/correct`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/correct-and-save`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -44,11 +44,11 @@ const DiaryForm = () => {
 
         const data = await res.json()
         setResult(data)
+
         setLoading(false)
 
-        console.log(data)
 
-        navigate('/showresult', {state: {original: text, corrected: data.corrected, grammar_issues: data.grammar_issues}})
+        navigate('/showresult', {state: {original: text, corrected: data.corrected_content, grammar_issues: data.grammar_issues}})
     }
 
     return ( 
