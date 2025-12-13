@@ -7,6 +7,8 @@ import {
   ScrollRestoration,
 } from "react-router";
 
+import Navbar from "./components/Navbar";
+
 import type { Route } from "./+types/root";
 import "./app.css";
 
@@ -33,7 +35,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
+        <Navbar />
+        <main>
+          {children}
+        </main>
         <ScrollRestoration />
         <Scripts />
       </body>
