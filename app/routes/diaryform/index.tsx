@@ -12,23 +12,6 @@ const DiaryForm = () => {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         setLoading(true)
-        // 1. いまの履歴を localStorage から取得
-        const saved = localStorage.getItem("wordscount");
-        const parsed: number[] | number = saved ? JSON.parse(saved) : [];
-        const countArr: number[] = Array.isArray(parsed) ? parsed : [parsed];
-
-        // 2. 今回の語数を追加
-        countArr.push(wordsCount);
-
-        // 3. 配列として保存し直す
-        localStorage.setItem("wordscount", JSON.stringify(countArr));
-
-        // 日記本文も配列で保存したいなら同じ方式
-        const diarySaved = localStorage.getItem("diary");
-        const diaryParsed: string[] | string = diarySaved ? diarySaved : [];
-        const diaryArr: string[] = Array.isArray(diaryParsed) ? diaryParsed : [diaryParsed]
-        diaryArr.push(text);
-        //localStorage.setItem("diary", JSON.stringify(diaryArr));
 
         const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/correct-and-save`, {
             method: "POST",
@@ -37,6 +20,7 @@ const DiaryForm = () => {
             },
             body: JSON.stringify({
             content: text,
+            word_count: wordsCount
             }),
         })
 
