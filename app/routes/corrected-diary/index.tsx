@@ -7,6 +7,7 @@ type DiaryResult = {
     corrected: string,
     grammar_issues: string[],
     feedback: string,
+    level: string,
 }
 
 const CorrectedDiary = () => {
@@ -23,7 +24,7 @@ const CorrectedDiary = () => {
         return <p>Loading...</p>;
     }
     console.log(data)
-    const { original, corrected, grammar_issues, feedback } = data
+    const { original, corrected, grammar_issues, feedback, level } = data
     
 
     const diffs = diffWords(original, corrected)
@@ -31,18 +32,22 @@ const CorrectedDiary = () => {
     return ( 
         <div>
             <h2 className="text-center font-fold">添削結果</h2>
+            <div>
+                <h3 className="text-center font-semibold p-4">今回の日記のレベル(CEFR)</h3>
+                 <p className="text-center border border-gray-200 p-2">{level}</p>
+            </div>
             <div className="grid gap-6 grid-cols-1 md:grid-cols-2 justify-items-center p-4 mb-4">
                 <div className="w-full max-w-md">
                     <button onClick={() => setIsShowOriginal(!isShowOriginal)} className="bg-orange-500 w-full text-white p-4 mb-4 rounded-lg cursor-pointer hover:bg-orange-600">
-                        {isShowOriginal ? "あなたの日記 +" : "あなたの日記 -"}
+                        {!isShowOriginal ? "あなたの日記 +" : "あなたの日記 -"}
                     </button>
-                    {!isShowOriginal ? <p className="text-center border border-gray-200 p-2">{original}</p> : null}
+                    {isShowOriginal ? <p className="text-center border border-gray-200 p-2">{original}</p> : null}
                 </div>
                 <div className="w-full max-w-md">
                     <button onClick={() => setIsShowCorrected(!isShowCorrected)} className="bg-orange-500 w-full text-white p-4 mb-4 rounded-lg cursor-pointer hover:bg-orange-600">
-                        {isShowCorrected ? "添削後の日記 +" : "添削後の日記 -"}
+                        {!isShowCorrected ? "添削後の日記 +" : "添削後の日記 -"}
                     </button>
-                    {!isShowCorrected ? <p className="text-center border border-gray-200 p-2">{corrected}</p> : null}
+                    {isShowCorrected ? <p className="text-center border border-gray-200 p-2">{corrected}</p> : null}
                 </div>
             </div>
             <div>
