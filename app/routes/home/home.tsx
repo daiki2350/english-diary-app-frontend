@@ -9,6 +9,7 @@ const Home = () => {
     const [totalCount, setTotalCount] = useState(0)
     const [original, setOriginal] = useState("")
     const [corrected, setCorrected] = useState("")
+    const [level, setLevel] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const [diffsDiary, setDiffsDiary] = useState<ChangeObject<string>[]>([])
     const getTotalWords = async () => {
@@ -31,9 +32,16 @@ const Home = () => {
         setIsLoading(false)
     }
 
+    const getMonthlyLevel = async () => {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/monthly-level`)
+        const data = await res.json()
+        setLevel(data.level)
+    }
+
     useEffect(() => {
         getTotalWords()
         getPrevDiaryData()
+        getMonthlyLevel()
     }, [])
 
 
@@ -52,6 +60,7 @@ const Home = () => {
                 </div>
                 <div className="bg-gray-100 border border-gray-200 rounded-lg overflow-hidden shadow-sm transition hover:shadow-md"> 
                     <h3 className='p-6 text-center font-semifold'>今月の平均レベル</h3>
+                    <p className="mb-4 text-center">{level}</p>
                 </div>
                 <div className="bg-gray-100 border border-gray-200 rounded-lg overflow-hidden shadow-sm transition hover:shadow-md"> 
                     <h3 className='p-6 text-center font-semifold'>改善ポイント</h3>

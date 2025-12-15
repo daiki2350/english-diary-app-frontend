@@ -19,8 +19,8 @@ const DiaryForm = () => {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-            content: text,
-            word_count: wordsCount
+                content: text,
+                word_count: wordsCount
             }),
         })
 
@@ -32,7 +32,7 @@ const DiaryForm = () => {
         setLoading(false)
 
 
-        navigate('/showresult', {state: {original: text, corrected: data.corrected_content, grammar_issues: data.grammar_issues, feedback: data.feedback}})
+        navigate('/showresult', {state: {original: text, corrected: data.corrected_content, grammar_issues: data.grammar_issues, feedback: data.feedback, level: data.level}})
     }
 
     return ( 
