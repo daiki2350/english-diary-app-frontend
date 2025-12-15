@@ -32,7 +32,7 @@ const DiaryForm = () => {
         setLoading(false)
 
 
-        navigate('/showresult', {state: {original: text, corrected: data.corrected_content, grammar_issues: data.grammar_issues}})
+        navigate('/showresult', {state: {original: text, corrected: data.corrected_content, grammar_issues: data.grammar_issues, feedback: data.feedback}})
     }
 
     return ( 
