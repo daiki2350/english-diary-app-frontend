@@ -6,6 +6,7 @@ type DiaryResult = {
     original: string,
     corrected: string,
     grammar_issues: string[],
+    feedback: string,
 }
 
 const CorrectedDiary = () => {
@@ -21,7 +22,8 @@ const CorrectedDiary = () => {
     if (!data) {
         return <p>Loading...</p>;
     }
-    const { original, corrected, grammar_issues } = data
+    console.log(data)
+    const { original, corrected, grammar_issues, feedback } = data
     
 
     const diffs = diffWords(original, corrected)
@@ -64,6 +66,10 @@ const CorrectedDiary = () => {
                         {issue}
                     </p>
                 ))}
+            </div>
+            <div>
+                <h3 className="text-center font-semibold p-4">フィードバック</h3>
+                 <p className="text-center border border-gray-200 p-2">{feedback}</p>
             </div>
         </div>
      );
