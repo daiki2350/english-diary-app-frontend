@@ -37,7 +37,7 @@ const DiaryForm = () => {
 
     return ( 
         <div>
-            <h2 className='p-6 text-center font-semifold'>
+            <h2 className='p-6 text-center font-bold text-lg'>
                 日記入力フォーム
             </h2>
             <form onSubmit={handleSubmit} className="space-y-6">
