@@ -2,10 +2,62 @@ import { useLocation } from "react-router";
 import { diffWords } from "diff";
 import { useState, useEffect } from "react";
 
+type GrammarIssueType =
+  | "tense"
+  | "aspect"
+  | "modal_verb"
+  | "subject_verb_agreement"
+  | "voice_active_passive"
+  | "conditional"
+  | "comparative_superlative"
+  | "article"
+  | "preposition"
+  | "conjunction"
+  | "relative_clause"
+  | "infinitive_gerund"
+  | "plural_singular"
+  | "countable_uncountable"
+  | "determiner"
+  | "negation"
+  | "question_form"
+  | "word_order"
+  | "parallel_structure"
+  | "ellipsis_substitution"
+  | "quantifier"
+  | "word_choice"
+  | "collocation"
+  | "formality_tone"
+  | "register"
+  | "idiom_usage"
+  | "false_friends"
+  | "context_mismatch"
+  | "sentence_fragment"
+  | "run_on_sentence"
+  | "clause_misuse"
+  | "subordination_coordination"
+  | "coherence_cohesion"
+  | "punctuation"
+  | "capitalization"
+  | "spelling"
+  | "redundancy_wordiness"
+  | "ambiguity"
+  | "awkward_expression"
+  | "formality_mismatch";
+
+type GrammarIssue = {
+  id: string;
+  type: GrammarIssueType;
+  message: string;
+  example_before?: string;
+  example_after?: string;
+};
+
+
+
 type DiaryResult = {
     original: string,
     corrected: string,
-    grammar_issues: string[],
+    grammar_issues: GrammarIssue[],
     feedback: string,
     level: string,
 }
@@ -66,9 +118,9 @@ const CorrectedDiary = () => {
             </div>
             <div>
                 <h3 className="text-center font-semibold p-4">気をつけるべき文法</h3>
-                {grammar_issues.map((issue: string) => (
-                    <p key={issue} className="text-center border border-gray-200 p-2">
-                        {issue}
+                {grammar_issues.map((issue: GrammarIssue) => (
+                    <p key={issue.id} className="text-center border border-gray-200 p-2">
+                        {issue.message}
                     </p>
                 ))}
             </div>
