@@ -17,6 +17,7 @@ const Home = () => {
     const [level, setLevel] = useState("")
     const [grammarIssues, setGrammarIssues] = useState([""])
     const [feedback, setFeedback] = useState("")
+    const [streak, setStreak] = useState(0)
     const [isLoading, setIsLoading] = useState(false)
     const [diffsDiary, setDiffsDiary] = useState<ChangeObject<string>[]>([])
     const getTotalWords = async () => {
@@ -53,11 +54,19 @@ const Home = () => {
         setGrammarIssues(label)
     }
 
+    const calculateStreak = async () => {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/calculate-streak`)
+        const data = await res.json()
+        const streak = data.streak
+        setStreak(streak)
+    }
+
     useEffect(() => {
         getTotalWords()
         getPrevDiaryData()
         getMonthlyLevel()
         recentGrammarIssues()
+        calculateStreak()
     }, [])
 
 
@@ -70,30 +79,35 @@ const Home = () => {
                 </div>
             )}
             <h2 className='font-bold text-lg text-center my-6'>英語日記アプリ</h2>
-            <div className="grid gap-6 sm:grid-cols-2 items-start">
-                <div className="bg-gray-100 border border-gray-200 rounded-lg overflow-hidden shadow-sm transition hover:shadow-md">
-                    <h3 className='p-6 text-center font-semifold'>連続記録</h3>
+            <div className="grid gap-2 sm:grid-cols-3 items-start">
+                <div className="bg-gray-100 border h-full border-gray-200 rounded-lg overflow-hidden shadow-sm transition cursor-pointer hover:shadow-md">
+                    <h3 className='p-6 text-center font-semibold'>連続記録</h3>
+                    <p className="mb-4 text-center">{streak}</p>
+                    <p className="text-right text-xs text-gray-400 pr-2">タップで詳細</p>
                 </div>
-                <div className="bg-gray-100 border border-gray-200 rounded-lg overflow-hidden shadow-sm transition hover:shadow-md"> 
-                    <h3 className='p-6 text-center font-semifold'>今月の平均レベル</h3>
+                <div className="bg-gray-100 border h-full border-gray-200 rounded-lg overflow-hidden shadow-sm transition cursor-pointer hover:shadow-md"> 
+                    <h3 className='p-6 text-center font-semibold'>今月の平均レベル</h3>
                     <p className="mb-4 text-center">{level}</p>
+                    <p className="text-right text-xs text-gray-400 pr-2">タップで詳細</p>
                 </div>
-                <div className="bg-gray-100 border border-gray-200 rounded-lg overflow-hidden shadow-sm transition hover:shadow-md"> 
-                    <h3 className='p-6 text-center font-semifold'>あなたの苦手 Top5</h3>
+                <div className="bg-gray-100 border border-gray-200 h-full rounded-lg overflow-hidden shadow-sm transition cursor-pointer hover:shadow-md">
+                    <h3 className='p-6 text-center font-semibold'>今月の文字数</h3>
+                    <p className="mb-4 text-center">{totalCount}</p>
+                    <p className="text-right text-xs text-gray-400 pr-2">タップで詳細</p>
+                </div>
+                <div className="bg-gray-100 border border-gray-200 h-full rounded-lg overflow-hidden shadow-sm transition cursor-pointer hover:shadow-md"> 
+                    <h3 className='p-6 text-center font-semibold'>あなたの苦手 Top5</h3>
                     {grammarIssues.map((issue) => (
                         <p key={issue} className="mb-4 text-center">{issue}</p>
                     ))}
+                    <p className="text-right text-xs text-gray-400 pr-2">タップで詳細</p>
                 </div>
-                <div className="bg-gray-100 border border-gray-200 rounded-lg overflow-hidden shadow-sm transition hover:shadow-md">
-                    <h3 className='p-6 text-center font-semifold'>今月の文字数</h3>
-                    <p className="mb-4 text-center">{totalCount}</p>
-                </div>
-                <div className="sm:col-span-2 bg-gray-100 border border-gray-200 rounded-lg overflow-hidden shadow-sm transition hover:shadow-md">
-                    <h3 className='p-6 text-center font-semifold'>前回のフィードバック</h3>
+                <div className="sm:col-span-2 bg-gray-100 border border-gray-200 h-full rounded-lg overflow-hidden shadow-sm transition cursor-pointer hover:shadow-md">
+                    <h3 className='p-6 text-center font-semibold'>前回のフィードバック</h3>
                     <p className="mb-4 text-center">{feedback}</p>
                 </div>
-                <div className="sm:col-span-2 bg-gray-100 border border-gray-200 rounded-lg overflow-hidden shadow-sm mb-8 transition hover:shadow-md">
-                    <h3 className='p-6 text-center font-semifold'>前回の添削</h3>
+                <div className="sm:col-span-3 bg-gray-100 border border-gray-200 rounded-lg overflow-hidden shadow-sm mb-8 transition cursor-pointer hover:shadow-md">
+                    <h3 className='p-6 text-center font-semibold'>前回の添削</h3>
                     <div className="px-4 mb-2">
                         {diffsDiary.map((part, index) => (
                             <span 
