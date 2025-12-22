@@ -7,5 +7,6 @@ export default [
         route('showresult', './routes/corrected-diary/index.tsx'),
         route('prevdiaries', './routes/prev-diary/index.tsx'),
         route('cefrdetails', './routes/cefr-details/index.tsx'),
+        route('issuesdetails', './routes/grammar-issues-details/index.tsx')
     ])
 ] satisfies RouteConfig;
