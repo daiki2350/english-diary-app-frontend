@@ -6,8 +6,13 @@ import { diffWords, wordDiff } from "diff";
 import type { ChangeObject } from "diff";
 
 type GrammarIssue = {
-    label: string,
-    count: number
+    label: string;
+    count: number;
+}
+
+type WeeklyLevel = {
+    week: number;
+    level: string | null;
 }
 
 const Home = () => {
@@ -15,6 +20,7 @@ const Home = () => {
     const [original, setOriginal] = useState("")
     const [corrected, setCorrected] = useState("")
     const [level, setLevel] = useState("")
+    const [weeklyLevel, setWeeklyLevel] = useState<WeeklyLevel[]>([])
     const [grammarIssues, setGrammarIssues] = useState([""])
     const [feedback, setFeedback] = useState("")
     const [streak, setStreak] = useState(0)
@@ -38,13 +44,19 @@ const Home = () => {
         setFeedback(latest.feedback)
         const diffs = diffWords(latest.content, latest.corrected_content)
         setDiffsDiary(diffs)
-        setIsLoading(false)
     }
 
-    const getMonthlyLevel = async () => {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/monthly-level`)
+    const getWeeklyLevel = async () => {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/weekly-level`)
         const data = await res.json()
-        setLevel(data.level)
+        console.log(data)
+        if (data[0].avgLevel === null) {
+            setLevel("今週の記録はありません")
+        } else{
+            setLevel(data[0].avgLevel)
+        }
+        
+        setWeeklyLevel(data)
     }
 
     const recentGrammarIssues = async () => {
@@ -62,33 +74,46 @@ const Home = () => {
     }
 
     useEffect(() => {
-        getTotalWords()
-        getPrevDiaryData()
-        getMonthlyLevel()
-        recentGrammarIssues()
-        calculateStreak()
+        const loadAll = async () => {
+            setIsLoading(true);
+
+            await Promise.all([
+                getTotalWords(),
+                getPrevDiaryData(),
+                getWeeklyLevel(),
+                recentGrammarIssues(),
+                calculateStreak(),
+            ]);
+
+            setIsLoading(false);
+        };
+
+        loadAll();
     }, [])
 
+    if (isLoading) return (
+        <div className="flex justify-center mt-4">
+            <p className="text-center p-10">Loading...</p>
+            <div className="animate-spin p-10 rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+        </div>
+    )
 
 
     return ( 
         <div>
-            {isLoading && (
-                <div className="flex justify-center mt-4">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-                </div>
-            )}
             <h2 className='font-bold text-lg text-center my-6'>英語日記アプリ</h2>
             <div className="grid gap-2 sm:grid-cols-3 items-start">
                 <div className="bg-gray-100 border h-full border-gray-200 rounded-lg overflow-hidden shadow-sm transition cursor-pointer hover:shadow-md">
-                    <h3 className='p-6 text-center font-semibold'>連続記録</h3>
-                    <p className="mb-4 text-center">{streak}</p>
-                    <p className="text-right text-xs text-gray-400 pr-2">タップで詳細</p>
+                        <h3 className='p-6 text-center font-semibold'>連続記録</h3>
+                        <p className="mb-4 text-center">{streak}</p>
+                        <p className="text-right text-xs text-gray-400 pr-2">タップで詳細</p>
                 </div>
                 <div className="bg-gray-100 border h-full border-gray-200 rounded-lg overflow-hidden shadow-sm transition cursor-pointer hover:shadow-md"> 
-                    <h3 className='p-6 text-center font-semibold'>今月の平均レベル</h3>
-                    <p className="mb-4 text-center">{level}</p>
-                    <p className="text-right text-xs text-gray-400 pr-2">タップで詳細</p>
+                    <Link to='cefrdetails' state={weeklyLevel}>
+                        <h3 className='p-6 text-center font-semibold'>今月の平均レベル</h3>
+                        <p className="mb-4 text-center">{level}</p>
+                        <p className="text-right text-xs text-gray-400 pr-2">タップで詳細</p>
+                    </Link>
                 </div>
                 <div className="bg-gray-100 border border-gray-200 h-full rounded-lg overflow-hidden shadow-sm transition cursor-pointer hover:shadow-md">
                     <h3 className='p-6 text-center font-semibold'>今月の文字数</h3>
