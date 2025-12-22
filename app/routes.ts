@@ -6,5 +6,6 @@ export default [
         route('diaryform', './routes/diaryform/index.tsx'),
         route('showresult', './routes/corrected-diary/index.tsx'),
         route('prevdiaries', './routes/prev-diary/index.tsx'),
+        route('cefrdetails', './routes/cefr-details/index.tsx'),
     ])
 ] satisfies RouteConfig;
