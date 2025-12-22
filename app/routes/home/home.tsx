@@ -21,7 +21,7 @@ const Home = () => {
     const [corrected, setCorrected] = useState("")
     const [level, setLevel] = useState("")
     const [weeklyLevel, setWeeklyLevel] = useState<WeeklyLevel[]>([])
-    const [grammarIssues, setGrammarIssues] = useState([""])
+    const [grammarIssues, setGrammarIssues] = useState<GrammarIssue[]>([])
     const [feedback, setFeedback] = useState("")
     const [streak, setStreak] = useState(0)
     const [isLoading, setIsLoading] = useState(false)
@@ -62,8 +62,7 @@ const Home = () => {
     const recentGrammarIssues = async () => {
         const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/recent-grammar-issues`)
         const data = await res.json()
-        const label = data.trends.map((d: GrammarIssue) => d.label)
-        setGrammarIssues(label)
+        setGrammarIssues(data.trends)
     }
 
     const calculateStreak = async () => {
@@ -121,11 +120,13 @@ const Home = () => {
                     <p className="text-right text-xs text-gray-400 pr-2">タップで詳細</p>
                 </div>
                 <div className="bg-gray-100 border border-gray-200 h-full rounded-lg overflow-hidden shadow-sm transition cursor-pointer hover:shadow-md"> 
-                    <h3 className='p-6 text-center font-semibold'>あなたの苦手 Top5</h3>
-                    {grammarIssues.map((issue) => (
-                        <p key={issue} className="mb-4 text-center">{issue}</p>
-                    ))}
-                    <p className="text-right text-xs text-gray-400 pr-2">タップで詳細</p>
+                    <Link to="issuesdetails" state={grammarIssues}>
+                        <h3 className='p-6 text-center font-semibold'>あなたの苦手 Top5</h3>
+                        {grammarIssues.map((issue) => (
+                            <p key={issue.label} className="mb-4 text-center">{issue.label}: {issue.count}回</p>
+                        ))}
+                        <p className="text-right text-xs text-gray-400 pr-2">タップで詳細</p>
+                    </Link>
                 </div>
                 <div className="sm:col-span-2 bg-gray-100 border border-gray-200 h-full rounded-lg overflow-hidden shadow-sm transition cursor-pointer hover:shadow-md">
                     <h3 className='p-6 text-center font-semibold'>前回のフィードバック</h3>
