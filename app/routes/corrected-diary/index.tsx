@@ -83,7 +83,7 @@ const CorrectedDiary = () => {
 
     return ( 
         <div>
-            <h2 className="text-center font-fold">添削結果</h2>
+            <h2 className="text-center text-xl font-bold">添削結果</h2>
             <div>
                 <h3 className="text-center font-semibold p-4">今回の日記のレベル(CEFR)</h3>
                  <p className="text-center border border-gray-200 p-2">{level}</p>
