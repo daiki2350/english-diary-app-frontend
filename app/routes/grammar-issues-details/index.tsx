@@ -25,13 +25,26 @@ type Issue = {
   count: number;
 };
 
+type IssuesExample = {
+    before: string;
+    after: string;
+}
+
 
 const GrammarIssuesDetails = () => {
-    const location = useLocation()
     const [issues, setIssues] = useState<Issue[]>([])
+    const [examples, setExamples] = useState<Record<string, { before: string, after: string }>>({})
+
+    const getIssuesExample = async () => {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/recent-grammar-issues-details`)
+        const data = await res.json()
+        console.log(data)
+        setIssues(data.trends)
+        setExamples(data.examples)
+    }
 
     useEffect(() => {
-        setIssues(location.state)
+        getIssuesExample()
     }, [])
     
 
@@ -77,7 +90,19 @@ const GrammarIssuesDetails = () => {
     
     return ( 
         <div>
-            <Bar options={options} data={data} />;
+            <div>
+                <Bar options={options} data={data} />;
+            </div>
+            <div className="m-8">
+                <h2 className="text-center text-xl font-semibold mb-4">間違えた部分の例</h2>
+                { Object.entries(examples).map(([label, example]) => (
+                    <div key={label} className="border border-gray-400 items-center">
+                        <h3 className="text-center border-b border-gray-200">{label}</h3>
+                        <p className="text-center text-red-500">Before: {example.before}</p>
+                        <p className="text-center text-green-500">After: {example.after}</p>
+                    </div>
+                ))}
+            </div>
         </div>
      );
 }

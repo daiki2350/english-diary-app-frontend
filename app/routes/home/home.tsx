@@ -1,9 +1,7 @@
-import Navbar from "~/components/Navbar";
 import { Link } from "react-router";
-import { useState, useEffect } from "react";
 import { VscAdd } from "react-icons/vsc";
-import { diffWords, wordDiff } from "diff";
-import type { ChangeObject } from "diff";
+import { diffWords } from "diff";
+import { useQuery } from "@tanstack/react-query";
 
 type GrammarIssue = {
     label: string;
@@ -15,81 +13,96 @@ type WeeklyLevel = {
     level: string | null;
 }
 
+async function fetchMonthlyWords() {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/monthly-word-count`);
+    if (!res.ok) throw new Error("Failed to fetch monthly word data");
+    const data = await res.json();
+    return data.total
+}
+
+async function fetchPrevDiary() {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries?sort[0]=createdAt:desc&pagination[limit]=1`);
+    if (!res.ok) throw new Error("Failed to fetch latest diary");
+    const data = await res.json();
+    const latest = data.data[0];
+
+    const diffs = diffWords(latest.content, latest.corrected_content);
+
+    return {
+        original: latest.content,
+        corrected: latest.corrected_content,
+        feedback: latest.feedback,
+        diffs,
+    };
+}
+
+async function fetchWeeklyLevel() {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/weekly-level`);
+    if (!res.ok) throw new Error("Failed to fetch weekly level");
+    const data = await res.json()
+    return data.avgLevel
+}
+
+async function fetchRecentIssues() {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/recent-grammar-issues`);
+    if (!res.ok) throw new Error("Failed to fetch grammar issues");
+    const data = await res.json();
+    return data.trends
+}
+
+async function fetchStreak() {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/calculate-streak`);
+    if (!res.ok) throw new Error("Failed to fetch streak");
+    const data = await res.json();
+    return data.streak
+}
+
+    
 const Home = () => {
-    const [totalCount, setTotalCount] = useState(0)
-    const [original, setOriginal] = useState("")
-    const [corrected, setCorrected] = useState("")
-    const [level, setLevel] = useState("")
-    const [weeklyLevel, setWeeklyLevel] = useState<WeeklyLevel[]>([])
-    const [grammarIssues, setGrammarIssues] = useState<GrammarIssue[]>([])
-    const [feedback, setFeedback] = useState("")
-    const [streak, setStreak] = useState(0)
-    const [isLoading, setIsLoading] = useState(false)
-    const [diffsDiary, setDiffsDiary] = useState<ChangeObject<string>[]>([])
-    const getTotalWords = async () => {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/monthly-word-count`)
-        if(!res.ok) throw new Error('Failed to fetch data')
-        const data = await res.json()
-        console.log(data)
-        setTotalCount(data.total)
-    }
 
-    const getPrevDiaryData = async () => {
-        setIsLoading(true)
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries?sort[0]=createdAt:desc&pagination[limit]=1`)
-        const data = await res.json()
-        const latest = data.data[0]
-        setOriginal(latest.content)
-        setCorrected(latest.corrected_content)
-        setFeedback(latest.feedback)
-        const diffs = diffWords(latest.content, latest.corrected_content)
-        setDiffsDiary(diffs)
-    }
+    // ● 今月の文字数
+    const { data: words, isLoading: loadingWords } = useQuery({
+        queryKey: ["monthlyWords"],
+        queryFn: fetchMonthlyWords,
+        staleTime: 1000 * 60 * 5,
+    });
 
-    const getWeeklyLevel = async () => {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/weekly-level`)
-        const data = await res.json()
-        console.log(data)
-        if (data[0].avgLevel === null) {
-            setLevel("今週の記録はありません")
-        } else{
-            setLevel(data[0].avgLevel)
-        }
-        
-        setWeeklyLevel(data)
-    }
+        // ● 最新の日記
+    const { data: prevDiary, isLoading: loadingPrev } = useQuery({
+        queryKey: ["prevDiary"],
+        queryFn: fetchPrevDiary,
+        staleTime: 1000 * 60 * 5,
+    });
 
-    const recentGrammarIssues = async () => {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/recent-grammar-issues`)
-        const data = await res.json()
-        setGrammarIssues(data.trends)
-    }
+        // ● 週の平均 CEFR
+    const { data: weeklyLevel, isLoading: loadingWeekly } = useQuery({
+        queryKey: ["weeklyLevel"],
+        queryFn: fetchWeeklyLevel,
+        staleTime: 1000 * 60 * 5,
+    });
 
-    const calculateStreak = async () => {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/calculate-streak`)
-        const data = await res.json()
-        const streak = data.streak
-        setStreak(streak)
-    }
+        // ● 文法ミス Top5
+    const { data: grammarIssues, isLoading: loadingIssues } = useQuery<GrammarIssue[]>({
+        queryKey: ["grammarIssues"],
+        queryFn: fetchRecentIssues,
+        staleTime: 1000 * 60 * 5,
+    });
 
-    useEffect(() => {
-        const loadAll = async () => {
-            setIsLoading(true);
+        // ● ストリーク
+    const { data: streak, isLoading: loadingStreak } = useQuery({
+        queryKey: ["streak"],
+        queryFn: fetchStreak,
+        staleTime: 1000 * 60 * 5,
+    });
 
-            await Promise.all([
-                getTotalWords(),
-                getPrevDiaryData(),
-                getWeeklyLevel(),
-                recentGrammarIssues(),
-                calculateStreak(),
-            ]);
+    const isLoading =
+        loadingWords ||
+        loadingPrev ||
+        loadingWeekly ||
+        loadingIssues ||
+        loadingStreak;
 
-            setIsLoading(false);
-        };
-
-        loadAll();
-    }, [])
-
+    console.log(weeklyLevel)
     if (isLoading) return (
         <div className="flex justify-center mt-4">
             <p className="text-center p-10">Loading...</p>
@@ -97,45 +110,44 @@ const Home = () => {
         </div>
     )
 
+    const level = weeklyLevel === null ? "今週の記録はありません" : weeklyLevel
 
     return ( 
         <div>
-            <h2 className='font-bold text-lg text-center my-6'>英語日記アプリ</h2>
+            <h2 className='font-bold text-xl text-center my-6'>英語日記アプリ</h2>
             <div className="grid gap-2 sm:grid-cols-3 items-start">
                 <div className="bg-gray-100 border h-full border-gray-200 rounded-lg overflow-hidden shadow-sm transition cursor-pointer hover:shadow-md">
-                        <h3 className='p-6 text-center font-semibold'>連続記録</h3>
+                        <h3 className='p-8 text-center font-semibold'>連続記録</h3>
                         <p className="mb-4 text-center">{streak}</p>
-                        <p className="text-right text-xs text-gray-400 pr-2">タップで詳細</p>
                 </div>
                 <div className="bg-gray-100 border h-full border-gray-200 rounded-lg overflow-hidden shadow-sm transition cursor-pointer hover:shadow-md"> 
-                    <Link to='cefrdetails' state={weeklyLevel}>
-                        <h3 className='p-6 text-center font-semibold'>今月の平均レベル</h3>
+                    <Link to='cefrdetails'>
+                        <h3 className='p-8 text-center font-semibold'>今月の平均レベル</h3>
                         <p className="mb-4 text-center">{level}</p>
                         <p className="text-right text-xs text-gray-400 pr-2">タップで詳細</p>
                     </Link>
                 </div>
                 <div className="bg-gray-100 border border-gray-200 h-full rounded-lg overflow-hidden shadow-sm transition cursor-pointer hover:shadow-md">
-                    <h3 className='p-6 text-center font-semibold'>今月の文字数</h3>
-                    <p className="mb-4 text-center">{totalCount}</p>
-                    <p className="text-right text-xs text-gray-400 pr-2">タップで詳細</p>
+                    <h3 className='p-8 text-center font-semibold'>今月の文字数</h3>
+                    <p className="mb-4 text-center">{words}</p>
                 </div>
                 <div className="bg-gray-100 border border-gray-200 h-full rounded-lg overflow-hidden shadow-sm transition cursor-pointer hover:shadow-md"> 
                     <Link to="issuesdetails" state={grammarIssues}>
-                        <h3 className='p-6 text-center font-semibold'>あなたの苦手 Top5</h3>
-                        {grammarIssues.map((issue) => (
+                        <h3 className='p-8 text-center font-semibold'>あなたの苦手 Top5</h3>
+                        {grammarIssues?.map((issue: GrammarIssue) => (
                             <p key={issue.label} className="mb-4 text-center">{issue.label}: {issue.count}回</p>
                         ))}
                         <p className="text-right text-xs text-gray-400 pr-2">タップで詳細</p>
                     </Link>
                 </div>
                 <div className="sm:col-span-2 bg-gray-100 border border-gray-200 h-full rounded-lg overflow-hidden shadow-sm transition cursor-pointer hover:shadow-md">
-                    <h3 className='p-6 text-center font-semibold'>前回のフィードバック</h3>
-                    <p className="mb-4 text-center">{feedback}</p>
+                    <h3 className='p-8 text-center font-semibold'>前回のフィードバック</h3>
+                    <p className="mb-4 text-center">{prevDiary?.feedback}</p>
                 </div>
                 <div className="sm:col-span-3 bg-gray-100 border border-gray-200 rounded-lg overflow-hidden shadow-sm mb-8 transition cursor-pointer hover:shadow-md">
-                    <h3 className='p-6 text-center font-semibold'>前回の添削</h3>
-                    <div className="px-4 mb-2">
-                        {diffsDiary.map((part, index) => (
+                    <h3 className='p-8 text-center font-semibold'>前回の添削</h3>
+                    <div className="px-4 mb-2 max-w-screen-lg mx-auto pb-8">
+                        {prevDiary?.diffs.map((part, index) => (
                             <span 
                             key={index} 
                             style={{

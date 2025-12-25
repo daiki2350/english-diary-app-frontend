@@ -63,7 +63,7 @@ const prevDiary = () => {
 
     return ( 
         <div>
-            <h2 className="text-center font-bold text-lg">{formatDate(diaries[counter].createdAt)}の日記</h2>
+            <h2 className="text-center font-bold text-xl">{formatDate(diaries[counter].createdAt)}の日記</h2>
             <div className="grid grid-cols-2 items-stretch">
                 {/* 左ボタン */}
                 <div className="flex">

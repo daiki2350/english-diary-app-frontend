@@ -1,9 +1,14 @@
 import { Outlet } from "react-router";
+import Navbar from "~/components/Navbar";
 const HomeLayout = () => {
     return ( 
-        <section className="max-w-6xl mx-auto mb-8">
-            <Outlet />
-        </section>
+        <>
+            <Navbar />
+            <section className="max-w-6xl mx-auto mb-8">
+                <Outlet />
+            </section>
+        </>
+        
      );
 }
  
