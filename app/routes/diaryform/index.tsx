@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { useAuthStore } from "~/stores/auth"
 
 const DiaryForm = () => {
+    const token = useAuthStore((s) => s.token)
     const [text, setText] = useState('')
     const [result, setResult] = useState(null);  // 添削結果を保存
     const [loading, setLoading] = useState(false);
+
     const navigate = useNavigate()
 
     const wordsCount = text.trim() === "" ? 0 : text.trim().split(/\s+/).length
@@ -17,10 +20,11 @@ const DiaryForm = () => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
                 content: text,
-                word_count: wordsCount
+                word_count: wordsCount,
             }),
         })
 

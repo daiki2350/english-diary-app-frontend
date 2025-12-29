@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { diffWords } from "diff";
 import type { ChangeObject } from "diff";
+import LoadComponent from "~/components/Loading";
 
 type GrammarIssue = {
   id: string;
@@ -58,7 +59,7 @@ const prevDiary = () => {
     }, [counter, diaries])
 
     if (diaries.length === 0) {
-        return <p className="text-center p-10">ロード中...</p>;
+        return <LoadComponent />
     }
 
     return ( 

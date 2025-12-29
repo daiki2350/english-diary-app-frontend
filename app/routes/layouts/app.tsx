@@ -1,16 +1,14 @@
-import { Outlet } from "react-router";
-import Navbar from "~/components/Navbar";
+import { Outlet } from "react-router"
+import Navbar from "~/components/Navbar"
 import { useAuthStore } from "~/stores/auth"
 import { useEffect } from "react"
 import { Navigate } from "react-router";
 
-
-const HomeLayout = () => {
-    const { token, hydrate, hydrated } = useAuthStore()
+const AppLayout = () => {
+  const { token, hydrate, hydrated } = useAuthStore()
 
     useEffect(() => {
         hydrate()
-        console.log(token)
     }, [hydrate])
 
         // 🔴 まだ認証状態が確定していない
@@ -22,15 +20,14 @@ const HomeLayout = () => {
     if (!token) {
         return <Navigate to="/login" replace />
     }
-    return ( 
-        <>
-            <Navbar />
-            <section className="max-w-6xl mx-auto mb-8">
-                <Outlet />
-            </section>
-        </>
-        
-     );
+  return (
+    <>
+      <Navbar />
+      <section className="max-w-6xl mx-auto px-6 my-8">
+        <Outlet />
+      </section>
+    </>
+  )
 }
- 
-export default HomeLayout;
+
+export default AppLayout
