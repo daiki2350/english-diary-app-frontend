@@ -1,6 +1,7 @@
 import { useLocation } from "react-router";
 import { diffWords } from "diff";
 import { useState, useEffect } from "react";
+import LoadComponent from "~/components/Loading";
 
 type GrammarIssueType =
   | "tense"
@@ -63,7 +64,6 @@ type DiaryResult = {
 }
 
 const CorrectedDiary = () => {
-
     const location = useLocation()
     const [data, setData] = useState<DiaryResult | null>(null)
     const [isShowOriginal, setIsShowOriginal] = useState(false)
@@ -73,7 +73,7 @@ const CorrectedDiary = () => {
         setData(location.state)
     }, [])
     if (!data) {
-        return <p>Loading...</p>;
+        return <LoadComponent />;
     }
     console.log(data)
     const { original, corrected, grammar_issues, feedback, level } = data

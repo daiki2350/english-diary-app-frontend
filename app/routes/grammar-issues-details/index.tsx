@@ -1,4 +1,4 @@
-import { useLocation } from "react-router";
+import { useOutletContext } from "react-router";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -10,6 +10,8 @@ import {
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { useEffect, useState } from "react";
+import LoadComponent from "~/components/Loading";
+import { useAuthStore } from "~/stores/auth";
 
 ChartJS.register(
   CategoryScale,
@@ -32,20 +34,32 @@ type IssuesExample = {
 
 
 const GrammarIssuesDetails = () => {
+    const { token } = useAuthStore()
     const [issues, setIssues] = useState<Issue[]>([])
     const [examples, setExamples] = useState<Record<string, { before: string, after: string }>>({})
+    const [isLoading, setIsLoading] = useState(false)
 
     const getIssuesExample = async () => {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/recent-grammar-issues-details`)
+        setIsLoading(true)
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/recent-grammar-issues-details`,{
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        })
         const data = await res.json()
         console.log(data)
         setIssues(data.trends)
         setExamples(data.examples)
+        setIsLoading(false)
     }
 
     useEffect(() => {
         getIssuesExample()
     }, [])
+
+    if(isLoading) {
+        return <LoadComponent />
+    }
     
 
     const options = {
@@ -58,11 +72,11 @@ const GrammarIssuesDetails = () => {
         responsive: true,
         plugins: {
             legend: {
-            position: 'right' as const,
+                position: 'right' as const,
             },
             title: {
-            display: true,
-            text: '過去10回の文法ミスTop5',
+                display: true,
+                text: '過去10回の文法ミスTop5',
             },
         },
     };

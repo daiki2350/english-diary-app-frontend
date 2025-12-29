@@ -2,6 +2,8 @@ import { Link } from "react-router";
 import { VscAdd } from "react-icons/vsc";
 import { diffWords } from "diff";
 import { useQuery } from "@tanstack/react-query";
+import LoadComponent from "~/components/Loading";
+import { useAuthStore } from "~/stores/auth"
 
 type GrammarIssue = {
     label: string;
@@ -13,104 +15,138 @@ type WeeklyLevel = {
     level: string | null;
 }
 
-async function fetchMonthlyWords() {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/monthly-word-count`);
+
+async function fetchMonthlyWords(token: string) {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/monthly-word-count`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
     if (!res.ok) throw new Error("Failed to fetch monthly word data");
     const data = await res.json();
-    return data.total
+    return data.total ?? 0
 }
 
-async function fetchPrevDiary() {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries?sort[0]=createdAt:desc&pagination[limit]=1`);
+async function fetchLastDiary(token: string) {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/get-lastdiary`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
     if (!res.ok) throw new Error("Failed to fetch latest diary");
     const data = await res.json();
-    const latest = data.data[0];
+    const diary = Array.isArray(data) ? data[0] : data;
 
-    const diffs = diffWords(latest.content, latest.corrected_content);
+    if (!diary) {
+        return null;
+    }
+
+    const diffs = diffWords(
+        diary.content ?? "",
+        diary.corrected_content ?? ""
+    );
 
     return {
-        original: latest.content,
-        corrected: latest.corrected_content,
-        feedback: latest.feedback,
+        feedback: diary.feedback ?? null,
         diffs,
     };
+
 }
 
-async function fetchWeeklyLevel() {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/weekly-level`);
+async function fetchWeeklyLevel(token: string) {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/weekly-level`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
     if (!res.ok) throw new Error("Failed to fetch weekly level");
     const data = await res.json()
-    return data.avgLevel
+    return data.avgLevel ?? null
 }
 
-async function fetchRecentIssues() {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/recent-grammar-issues`);
+async function fetchRecentIssues(token: string) {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/recent-grammar-issues`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
     if (!res.ok) throw new Error("Failed to fetch grammar issues");
     const data = await res.json();
-    return data.trends
+    return data.trends ?? null
 }
 
-async function fetchStreak() {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/calculate-streak`);
+async function fetchStreak(token: string) {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/calculate-streak`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
     if (!res.ok) throw new Error("Failed to fetch streak");
     const data = await res.json();
-    return data.streak
+    return data.streak ?? 0
 }
 
     
 const Home = () => {
+    const { token, hydrated } = useAuthStore()
 
     // ● 今月の文字数
     const { data: words, isLoading: loadingWords } = useQuery({
-        queryKey: ["monthlyWords"],
-        queryFn: fetchMonthlyWords,
+        queryKey: ["monthlyWords", token],
+        queryFn: () => fetchMonthlyWords(token!),
+        enabled: hydrated && !!token,
         staleTime: 1000 * 60 * 5,
     });
 
         // ● 最新の日記
-    const { data: prevDiary, isLoading: loadingPrev } = useQuery({
-        queryKey: ["prevDiary"],
-        queryFn: fetchPrevDiary,
+    const { data: lastDiary = null, isLoading: loadingLast } = useQuery({
+        queryKey: ["lastDiary", token],
+        queryFn: () => fetchLastDiary(token!),
+        enabled: hydrated && !!token,
         staleTime: 1000 * 60 * 5,
     });
 
         // ● 週の平均 CEFR
     const { data: weeklyLevel, isLoading: loadingWeekly } = useQuery({
-        queryKey: ["weeklyLevel"],
-        queryFn: fetchWeeklyLevel,
+        queryKey: ["weeklyLevel", token],
+        queryFn: () => fetchWeeklyLevel(token!),
+        enabled: hydrated && !!token,
         staleTime: 1000 * 60 * 5,
     });
 
         // ● 文法ミス Top5
     const { data: grammarIssues, isLoading: loadingIssues } = useQuery<GrammarIssue[]>({
-        queryKey: ["grammarIssues"],
-        queryFn: fetchRecentIssues,
+        queryKey: ["grammarIssues", token],
+        queryFn: () => fetchRecentIssues(token!),
+        enabled: hydrated && !!token,
         staleTime: 1000 * 60 * 5,
     });
 
         // ● ストリーク
     const { data: streak, isLoading: loadingStreak } = useQuery({
-        queryKey: ["streak"],
-        queryFn: fetchStreak,
+        queryKey: ["streak", token],
+        queryFn: () => fetchStreak(token!),
+        enabled: hydrated && !!token,
         staleTime: 1000 * 60 * 5,
     });
 
     const isLoading =
         loadingWords ||
-        loadingPrev ||
+        loadingLast ||
         loadingWeekly ||
         loadingIssues ||
         loadingStreak;
 
-    console.log(weeklyLevel)
     if (isLoading) return (
-        <div className="flex justify-center mt-4">
-            <p className="text-center p-10">Loading...</p>
-            <div className="animate-spin p-10 rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-        </div>
+        <LoadComponent />
     )
 
-    const level = weeklyLevel === null ? "今週の記録はありません" : weeklyLevel
+    console.log(lastDiary)
+
+    const level = weeklyLevel === null ? "今週の英語はこれから。今日の一文から始めましょう。" : weeklyLevel
+    const issue = grammarIssues?.length === 0 ? "あなたの記録はありません。" : null
+    const lastDiaryMsg = lastDiary === null ? "右下のボタンから日記を書こう!" : null
+    const diffMsg = lastDiary === null ? "AIがあなたの英語を、より自然で伝わる表現に整えます。" : null
 
     return ( 
         <div>
@@ -132,8 +168,9 @@ const Home = () => {
                     <p className="mb-4 text-center">{words}</p>
                 </div>
                 <div className="bg-gray-100 border border-gray-200 h-full rounded-lg overflow-hidden shadow-sm transition cursor-pointer hover:shadow-md"> 
-                    <Link to="issuesdetails" state={grammarIssues}>
+                    <Link to="issuesdetails">
                         <h3 className='p-8 text-center font-semibold'>あなたの苦手 Top5</h3>
+                        {issue && <p className="mb-4 text-center">{issue}</p>}
                         {grammarIssues?.map((issue: GrammarIssue) => (
                             <p key={issue.label} className="mb-4 text-center">{issue.label}: {issue.count}回</p>
                         ))}
@@ -142,12 +179,14 @@ const Home = () => {
                 </div>
                 <div className="sm:col-span-2 bg-gray-100 border border-gray-200 h-full rounded-lg overflow-hidden shadow-sm transition cursor-pointer hover:shadow-md">
                     <h3 className='p-8 text-center font-semibold'>前回のフィードバック</h3>
-                    <p className="mb-4 text-center">{prevDiary?.feedback}</p>
+                    {lastDiaryMsg && <p className="mb-4 text-center">{lastDiaryMsg}</p>}
+                    <p className="mb-4 text-center">{lastDiary?.feedback}</p>
                 </div>
                 <div className="sm:col-span-3 bg-gray-100 border border-gray-200 rounded-lg overflow-hidden shadow-sm mb-8 transition cursor-pointer hover:shadow-md">
                     <h3 className='p-8 text-center font-semibold'>前回の添削</h3>
+                    {diffMsg && <p className="mb-4 text-center">{diffMsg}</p>}
                     <div className="px-4 mb-2 max-w-screen-lg mx-auto pb-8">
-                        {prevDiary?.diffs.map((part, index) => (
+                        {lastDiary?.diffs.map((part, index) => (
                             <span 
                             key={index} 
                             style={{

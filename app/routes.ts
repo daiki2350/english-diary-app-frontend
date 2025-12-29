@@ -5,12 +5,12 @@ export default [
         route('login', './routes/login/index.tsx'),
         route('register', './routes/register/index.tsx')
     ]),
-    layout('./routes/layouts/home.tsx', [index("./routes/home/home.tsx")]),
-    layout('./routes/layouts/main.tsx', [
-        route('diaryform', './routes/diaryform/index.tsx'),
-        route('showresult', './routes/corrected-diary/index.tsx'),
-        route('prevdiaries', './routes/prev-diary/index.tsx'),
-        route('cefrdetails', './routes/cefr-details/index.tsx'),
-        route('issuesdetails', './routes/grammar-issues-details/index.tsx')
-    ])
+    layout("./routes/layouts/app.tsx", [
+        index("./routes/home/home.tsx"),
+        route("diaryform", "./routes/diaryform/index.tsx"),
+        route("prevdiaries", "./routes/prev-diary/index.tsx"),
+        route("showresult", "./routes/corrected-diary/index.tsx"),
+        route("cefrdetails", "./routes/cefr-details/index.tsx"),
+        route("issuesdetails", "./routes/grammar-issues-details/index.tsx"),
+    ]),
 ] satisfies RouteConfig;

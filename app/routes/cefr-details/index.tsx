@@ -9,8 +9,9 @@ import {
   Legend,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import { useLocation } from 'react-router';
 import { useState, useEffect } from 'react';
+import LoadComponent from '~/components/Loading';
+import { useAuthStore } from '~/stores/auth';
 
 type WeeklyLevel = {
     week: number;
@@ -28,14 +29,23 @@ ChartJS.register(
 );
 
 const CefrDetails = () => {
-    const location = useLocation()
+    const { token } = useAuthStore()
     const [weeklyLevel, setWeeklyLevel] = useState<WeeklyLevel[] | null>(null)
     const [weeks, setWeeks] = useState<number[]>([])
     const [levels, setLevels] = useState<(string | null)[]>([])
 
+    const getRecntLevels = async () => {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/diaries/recent-weekly-levels`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        })
+        const data = await res.json()
+        setWeeklyLevel(data)
+    }
+
     useEffect(() => {
-        setWeeklyLevel(location.state)
-        console.log("location.state =", location.state);
+        getRecntLevels()
     }, [])
 
     useEffect(() => {
@@ -51,7 +61,7 @@ const CefrDetails = () => {
     }, [weeklyLevel]);
 
     if (weeklyLevel === null) {
-        return <p>Loading...</p>;
+        return <LoadComponent />
     }
 
     

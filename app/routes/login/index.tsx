@@ -3,6 +3,7 @@ import type { SubmitHandler } from "react-hook-form";
 import { z } from 'zod'
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router";
+import { useAuthStore } from "~/stores/auth"
 
 const registerSchema = z.object({
   email: z.string().email("メール形式が正しくありません"),
@@ -14,7 +15,7 @@ type FormInput = z.infer<typeof registerSchema>;
 
 const UserRegister = () => {
     const navigate = useNavigate()
-
+    const { setAuth } = useAuthStore()
     const {
     register,
     handleSubmit,
@@ -23,7 +24,6 @@ const UserRegister = () => {
   } = useForm<FormInput>({resolver: zodResolver(registerSchema),})
   
   const onSubmit: SubmitHandler<FormInput> = async (data) => {
-    console.log(data);
     const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/local`, {
         method: "POST",
         credentials: "include",
@@ -33,7 +33,12 @@ const UserRegister = () => {
         body: JSON.stringify({identifier: data.email, password: data.password})
     })
     if(!res.ok) throw new Error("Failed to register user information");
+
     const json = await res.json()
+    const jwt = json.jwt
+    const user = json.user
+
+    setAuth(jwt, user)
     navigate('/')
   };
     return ( 
@@ -86,9 +91,9 @@ const UserRegister = () => {
                         <div className="relative">
                             <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                                 <g
-                                stroke-linejoin="round"
-                                stroke-linecap="round"
-                                stroke-width="2.5"
+                                strokeLinejoin="round"
+                                strokeLinecap="round"
+                                strokeWidth="2.5"
                                 fill="none"
                                 stroke="currentColor"
                                 >
@@ -119,6 +124,10 @@ const UserRegister = () => {
                         登録
                     </button>
                 </form>
+                <div className="p-4 flex justify-center">
+                    <a href="register" className="mt-1 block text-lg leading-tight font-medium text-black hover:underline">新規登録はこちら</a>
+                </div>
+                
             </div>
         </div>
 
